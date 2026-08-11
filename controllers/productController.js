@@ -1,7 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-// Obtener todos los productos
 exports.getAllProducts = async (req, res) => {
   try {
     const products = await prisma.product.findMany({
@@ -18,7 +17,6 @@ exports.getAllProducts = async (req, res) => {
   }
 };
 
-// Crear producto
 exports.createProduct = async (req, res) => {
   const body = req.body;
   console.log("BODY RECIBIDO:", body);
@@ -26,23 +24,22 @@ exports.createProduct = async (req, res) => {
   try {
     const title = body.title || body.name || "Producto sin título";
     
-    // 1. Resolver Categoría (obtiene la primera o crea una 'General')
+    // Obtener la primera categoría o crear una por defecto
     let category = await prisma.category.findFirst();
     if (!category) {
       category = await prisma.category.create({
-        data: { name: 'General', slug: 'general' }
+        data: { name: 'General' }
       });
     }
 
-    // 2. Resolver Marca (obtiene la primera o crea una 'Generica')
+    // Obtener la primera marca o crear una por defecto (sin slug)
     let brand = await prisma.brand.findFirst();
     if (!brand) {
       brand = await prisma.brand.create({
-        data: { name: 'Genérica', slug: 'generica' }
+        data: { name: 'Genérica' }
       });
     }
 
-    // 3. Generar Slug
     const generatedSlug = title
       .toLowerCase()
       .trim()
@@ -50,7 +47,6 @@ exports.createProduct = async (req, res) => {
       .replace(/\s+/g, '-')
       .concat(`-${Date.now()}`);
 
-    // 4. Crear Producto en Prisma
     const newProduct = await prisma.product.create({
       data: {
         title: title,
@@ -58,7 +54,6 @@ exports.createProduct = async (req, res) => {
         description: body.description || "",
         price: parseFloat(body.price) || 0,
         
-        // Relaciones obligatorias aseguradas
         categoryId: body.categoryId ? parseInt(body.categoryId) : category.id,
         brandId: body.brandId ? parseInt(body.brandId) : brand.id,
 
@@ -85,7 +80,6 @@ exports.createProduct = async (req, res) => {
   }
 };
 
-// Actualizar Producto
 exports.updateProduct = async (req, res) => {
   const { id } = req.params;
   const { title, name, description, price, images } = req.body;
@@ -113,7 +107,6 @@ exports.updateProduct = async (req, res) => {
   }
 };
 
-// Eliminar Producto
 exports.deleteProduct = async (req, res) => {
   const { id } = req.params;
   try {
