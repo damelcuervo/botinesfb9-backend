@@ -24,9 +24,20 @@ exports.createProduct = async (req, res) => {
   console.log("BODY RECIBIDO:", body);
 
   try {
+    const title = body.title || body.name || "Producto sin título";
+    
+    // Generar un slug único basado en el título (ej: "nike-1723400000")
+    const generatedSlug = title
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9 -]/g, '') // Quita caracteres especiales
+      .replace(/\s+/g, '-')        // Cambia espacios por guiones
+      .concat(`-${Date.now()}`);
+
     const newProduct = await prisma.product.create({
       data: {
-        title: body.title || body.name || "Producto sin título",
+        title: title,
+        slug: body.slug || generatedSlug, // Se asigna automáticamente si no viene en el body
         description: body.description || "",
         price: parseFloat(body.price) || 0,
 
