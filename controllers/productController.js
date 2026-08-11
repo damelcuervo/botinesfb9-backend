@@ -21,16 +21,16 @@ exports.getAllProducts = async (req, res) => {
 // Crear producto con variantes de talle y stock (Solo Admin)
 exports.createProduct = async (req, res) => {
   const body = req.body;
-  console.log("BODY RECIBA:", body);
+  console.log("BODY RECIBIDO:", body);
 
   try {
     const newProduct = await prisma.product.create({
       data: {
-        name: body.name || body.title || body.nombre || "Producto sin nombre",
+        title: body.title || body.name || "Producto sin título",
         description: body.description || "",
         price: parseFloat(body.price) || 0,
 
-        // Solo agrega la relación si vienen IDs válidos
+        // Relaciones opcionales por si vienen IDs
         ...(body.categoryId && { categoryId: parseInt(body.categoryId) }),
         ...(body.brandId && { brandId: parseInt(body.brandId) }),
 
