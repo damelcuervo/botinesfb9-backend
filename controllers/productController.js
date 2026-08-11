@@ -20,50 +20,40 @@ exports.getAllProducts = async (req, res) => {
 
 // Crear producto con variantes de talle y stock (Solo Admin)
 exports.createProduct = async (req, res) => {
-  // Leemos tanto 'name' como 'title', y asignamos valores por defecto para que nunca sean undefined
-  const { 
-    name, title, 
-    description, price, 
-    categoryId, category, 
-    brandId, brand, 
-    variants, images 
-  } = req.body;
+  const body = req.body;
+  console.log("BODY RECIBA:", body);
 
   try {
     const newProduct = await prisma.product.create({
       data: {
-        name: name || title || "Botín sin nombre",
-        description: description || "",
-        price: parseFloat(price) || 0,
-        // Parseo seguro de ID numéricos o asignación por defecto
-        ...( (categoryId || category) && { categoryId: parseInt(categoryId || category) } ),
-        ...( (brandId || brand) && { brandId: parseInt(brandId || brand) } ),
-        
-        // Mapeo seguro de variantes parseando stock a Int
+        name: body.name || body.title || body.nombre || "Producto sin nombre",
+        description: body.description || "",
+        price: parseFloat(body.price) || 0,
+
+        // Solo agrega la relación si vienen IDs válidos
+        ...(body.categoryId && { categoryId: parseInt(body.categoryId) }),
+        ...(body.brandId && { brandId: parseInt(body.brandId) }),
+
         variants: {
-          create: (variants || []).map(v => ({
+          create: (body.variants || []).map(v => ({
             size: String(v.size),
             stock: parseInt(v.stock) || 0
           }))
         },
 
-        // Mapeo seguro de imágenes (maneja array de objetos o array de strings)
         images: {
-          create: (images || []).map(img => 
+          create: (body.images || []).map(img => 
             typeof img === 'string' ? { url: img } : { url: img.url }
           )
         }
       },
-      include: {
-        variants: true,
-        images: true
-      }
+      include: { variants: true, images: true }
     });
 
     res.status(201).json(newProduct);
   } catch (error) {
-    console.error("Error exacto en Prisma:", error);
-    res.status(500).json({ error: 'Error al crear el producto' });
+    console.error("ERROR EN PRISMA:", error);
+    res.status(500).json({ error: 'Error al crear producto', details: error.message });
   }
 };
 
