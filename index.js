@@ -45,7 +45,8 @@ app.get('/api/brands', async (req, res) => {
 app.post('/api/auth/login', authController.login);
 
 // --- Rutas Protegidas (Solo Admin) ---
-app.post('/api/products', authMiddleware, productController.createProduct);
+//app.post('/api/products', authMiddleware, productController.createProduct);
+app.post('/api/products', productController.createProduct);
 
 // Ruta para subir imágenes desde la PC
 app.post('/api/upload', upload.single('image'), uploadImage);
